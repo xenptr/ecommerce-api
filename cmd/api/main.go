@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/config"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/database"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/handler"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/repository"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/routes"
+	"github.com/xenptr/ecommerce-api/internal/config"
+	"github.com/xenptr/ecommerce-api/internal/database"
+	"github.com/xenptr/ecommerce-api/internal/handler"
+	"github.com/xenptr/ecommerce-api/internal/repository"
+	"github.com/xenptr/ecommerce-api/internal/routes"
+	"github.com/xenptr/ecommerce-api/internal/service"
 )
 
 var shutdownTimeout = 10 * time.Second
@@ -35,9 +36,10 @@ func main() {
 	defer pool.Close()
 
 	repo := repository.New(pool)
+	authService := service.NewAuthService(repo)
 
 	mux := http.NewServeMux()
-	h := handler.New(repo)
+	h := handler.New(repo, authService)
 
 	routes.RegisterRoutes(mux, h)
 

@@ -8,7 +8,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/config"
+	"github.com/xenptr/ecommerce-api/internal/config"
 )
 
 func startPostgresContainer() (

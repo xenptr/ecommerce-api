@@ -1,8 +1,16 @@
 package repository
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
 
-type UserRepository interface{}
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/xenptr/ecommerce-api/internal/models"
+)
+
+type UserRepository interface {
+	CreateUser(context.Context, models.User) error
+	GetUserByEmail(context.Context, string) (models.User, error)
+}
 
 type Store interface {
 	UserRepository

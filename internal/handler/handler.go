@@ -1,13 +1,18 @@
 package handler
 
-import "github.com/xenptr/go-projects/ecommerce-api/internal/repository"
+import (
+	"github.com/xenptr/ecommerce-api/internal/repository"
+	"github.com/xenptr/ecommerce-api/internal/service"
+)
 
 type Handler struct {
-	userRepo repository.UserRepository
+	userRepo    repository.UserRepository
+	authService *service.AuthService
 }
 
-func New(store repository.Store) *Handler {
+func New(store repository.Store, authService *service.AuthService) *Handler {
 	return &Handler{
-		userRepo: store,
+		userRepo:    store,
+		authService: authService,
 	}
 }

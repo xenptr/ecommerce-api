@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/xenptr/go-projects/ecommerce-api/internal/config"
+	"github.com/xenptr/ecommerce-api/internal/config"
 )
 
 func Open(cfg *config.Config) (*pgxpool.Pool, error) {
