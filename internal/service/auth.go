@@ -8,15 +8,18 @@ import (
 	"github.com/xenptr/ecommerce-api/internal/dto"
 	"github.com/xenptr/ecommerce-api/internal/models"
 	"github.com/xenptr/ecommerce-api/internal/repository"
+	"github.com/xenptr/ecommerce-api/internal/token"
 )
 
 type AuthService struct {
 	userRepo repository.UserRepository
+	tokens   token.Generator
 }
 
-func NewAuthService(userRepo repository.UserRepository) *AuthService {
+func NewAuthService(userRepo repository.Store, tokens token.Generator) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
+		tokens:   tokens,
 	}
 }
 
@@ -44,20 +47,25 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 	return s.userRepo.CreateUser(ctx, user)
 }
 
-func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) error {
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (string, error) {
 	validate := validator.New()
 
 	if err := validate.Struct(req); err != nil {
-		return err
+		return "", err
 	}
 	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err := auth.CheckPassword(req.Password, user.PasswordHash); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	token, err := s.tokens.Generate(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

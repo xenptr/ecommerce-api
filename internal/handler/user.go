@@ -47,7 +47,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.authService.Login(r.Context(), req)
+	token, err := h.authService.Login(r.Context(), req)
 	if err != nil {
 		var invalidValidationError *validator.InvalidValidationError
 		if errors.As(err, &invalidValidationError) {
@@ -66,6 +66,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusAccepted, map[string]string{
-		"message": "user logged in successfully",
+		"access_token": token,
 	})
 }

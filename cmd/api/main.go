@@ -14,9 +14,11 @@ import (
 	"github.com/xenptr/ecommerce-api/internal/config"
 	"github.com/xenptr/ecommerce-api/internal/database"
 	"github.com/xenptr/ecommerce-api/internal/handler"
+	"github.com/xenptr/ecommerce-api/internal/redis"
 	"github.com/xenptr/ecommerce-api/internal/repository"
 	"github.com/xenptr/ecommerce-api/internal/routes"
 	"github.com/xenptr/ecommerce-api/internal/service"
+	"github.com/xenptr/ecommerce-api/internal/token"
 )
 
 var shutdownTimeout = 10 * time.Second
@@ -29,19 +31,26 @@ func main() {
 
 	cfg := config.Load()
 
+	redisClient, err := redis.New(cfg)
+	if err != nil {
+		log.Fatal("redis: error establishing connection")
+	}
+	defer redisClient.Close()
+
 	pool, err := database.Open(cfg)
 	if err != nil {
-		log.Fatal("error establishing connection")
+		log.Fatal("psql: error establishing connection")
 	}
 	defer pool.Close()
 
 	repo := repository.New(pool)
-	authService := service.NewAuthService(repo)
+	jwt := token.NewJWT(cfg.JWTSecret)
+	authService := service.NewAuthService(repo, jwt)
 
 	mux := http.NewServeMux()
 	h := handler.New(repo, authService)
 
-	routes.RegisterRoutes(mux, h)
+	routes.RegisterRoutes(mux, h, jwt)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.AppPort,
