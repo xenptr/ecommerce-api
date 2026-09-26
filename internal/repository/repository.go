@@ -10,6 +10,7 @@ import (
 type UserRepository interface {
 	CreateUser(context.Context, models.User) error
 	GetUserByEmail(context.Context, string) (*models.User, error)
+	GetUserByID(context.Context, int64) (*models.User, error)
 }
 
 type Store interface {

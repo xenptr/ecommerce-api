@@ -12,7 +12,7 @@ import (
 
 const (
 	accessTokenTTL  = 15 * time.Minute
-	refreshTokenTTL = 7 * 24 * time.Hour
+	RefreshTokenTTL = 7 * 24 * time.Hour
 )
 
 const tokenTypeRefresh = "refresh"
@@ -20,6 +20,12 @@ const tokenTypeRefresh = "refresh"
 type refreshClaims struct {
 	jwt.RegisteredClaims
 	TokenType string `json:"type"`
+}
+
+// Result exposed to callers after validation.
+type RefreshTokenInfo struct {
+	UserID int64
+	JTI    string
 }
 
 type JWT struct {
@@ -43,7 +49,7 @@ func (j *JWT) GenerateRefresh(userID int64) (string, error) {
 	}
 
 	claims := refreshClaims{
-		RegisteredClaims: baseClaims(userID, refreshTokenTTL),
+		RegisteredClaims: baseClaims(userID, RefreshTokenTTL),
 		TokenType:        tokenTypeRefresh,
 	}
 
@@ -62,18 +68,26 @@ func (j *JWT) Parse(tokenString string) (int64, error) {
 	return strconv.ParseInt(claims.Subject, 10, 64)
 }
 
-func (j *JWT) ParseRefresh(tokenString string) (int64, error) {
+func (j *JWT) ParseRefresh(tokenString string) (RefreshTokenInfo, error) {
 	var claims refreshClaims
 
 	if err := j.parse(tokenString, &claims); err != nil {
-		return 0, err
+		return RefreshTokenInfo{}, err
 	}
 
 	if claims.TokenType != tokenTypeRefresh {
-		return 0, errors.New("invalid token type")
+		return RefreshTokenInfo{}, errors.New("invalid token type")
 	}
 
-	return strconv.ParseInt(claims.Subject, 10, 64)
+	userID, err := strconv.ParseInt(claims.Subject, 10, 64)
+	if err != nil {
+		return RefreshTokenInfo{}, err
+	}
+
+	return RefreshTokenInfo{
+		UserID: userID,
+		JTI:    claims.ID,
+	}, nil
 }
 
 func (j *JWT) sign(claims jwt.Claims) (string, error) {
@@ -92,7 +106,6 @@ func (j *JWT) parse(tokenString string, claims jwt.Claims) error {
 
 	_, err := parser.ParseWithClaims(tokenString, claims, keyFunc)
 	return err
-
 }
 
 func baseClaims(userID int64, ttl time.Duration) jwt.RegisteredClaims {

@@ -18,6 +18,7 @@ import (
 	"github.com/xenptr/ecommerce-api/internal/repository"
 	"github.com/xenptr/ecommerce-api/internal/routes"
 	"github.com/xenptr/ecommerce-api/internal/service"
+	"github.com/xenptr/ecommerce-api/internal/session"
 	"github.com/xenptr/ecommerce-api/internal/token"
 )
 
@@ -45,7 +46,8 @@ func main() {
 
 	repo := repository.New(pool)
 	jwt := token.NewJWT(cfg.JWTSecret)
-	authService := service.NewAuthService(repo, jwt)
+	refreshStore := session.NewRedisRefreshStore(redisClient.Client)
+	authService := service.NewAuthService(repo, jwt, refreshStore)
 
 	mux := http.NewServeMux()
 	h := handler.New(repo, authService)

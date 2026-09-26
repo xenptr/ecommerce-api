@@ -47,7 +47,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.authService.Login(r.Context(), req)
+	resp, err := h.authService.Login(r.Context(), req)
 	if err != nil {
 		var invalidValidationError *validator.InvalidValidationError
 		if errors.As(err, &invalidValidationError) {
@@ -66,7 +66,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusAccepted, map[string]string{
-		"access_token": token,
+		"access_token":  resp.AccessToken,
+		"refresh_token": resp.RefreshToken,
 	})
 }
 
@@ -77,4 +78,27 @@ func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+
+	resp, err := h.authService.RefreshToken(r.Context(), req)
+	if err != nil {
+		var invalidValidationError *validator.InvalidValidationError
+		if errors.As(err, &invalidValidationError) {
+			writeError(w, http.StatusInternalServerError, "error in validating data")
+			return
+		}
+
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
+			writeValidationError(w, validationErrors)
+			return
+		}
+
+		writeError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	writeJSON(w, http.StatusAccepted, map[string]string{
+		"access_token":  resp.AccessToken,
+		"refresh_token": resp.RefreshToken,
+	})
 }

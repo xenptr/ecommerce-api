@@ -16,8 +16,9 @@ func (r *Repo) CreateUser(ctx context.Context, u models.User) error {
 }
 
 func (r *Repo) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	var user *models.User
-	row := r.pool.QueryRow(ctx, `SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users`)
+	var user models.User
+	row := r.pool.QueryRow(ctx, `SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users
+	WHERE email = $1`, email)
 	err := row.Scan(
 		&user.ID,
 		&user.Email,
@@ -33,5 +34,27 @@ func (r *Repo) GetUserByEmail(ctx context.Context, email string) (*models.User, 
 		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
+}
+
+func (r *Repo) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
+	var user models.User
+	row := r.pool.QueryRow(ctx, `SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users
+	WHERE id = $1`, id)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.FirstName,
+		&user.LastName,
+		&user.Role,
+		&user.IsActive,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

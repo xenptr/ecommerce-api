@@ -14,7 +14,7 @@ type Client struct {
 
 func New(cfg *config.Config) (*Client, error) {
 	opt := &redis.Options{
-		Addr:     cfg.RedisHost + cfg.RedisPort,
+		Addr:     cfg.RedisHost + ":" + cfg.RedisPort,
 		Username: cfg.RedisUsername,
 		Password: cfg.RedisPassword,
 		DB:       0,
