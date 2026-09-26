@@ -69,3 +69,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		"access_token": token,
 	})
 }
+
+func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	var req dto.RefreshRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+}

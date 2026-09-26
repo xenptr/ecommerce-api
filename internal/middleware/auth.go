@@ -5,10 +5,13 @@ import (
 	"strings"
 
 	"github.com/xenptr/ecommerce-api/internal/auth"
-	"github.com/xenptr/ecommerce-api/internal/token"
 )
 
-func Auth(parser token.Parser) func(next http.Handler) http.Handler {
+type AccessTokenParser interface {
+	Parse(tokenString string) (int64, error)
+}
+
+func Auth(parser AccessTokenParser) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userToken := r.Header.Get("Authorization")
